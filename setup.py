@@ -37,7 +37,7 @@ options = {
 setup(
     name="PTax",
     options=options,
-    version="1.0.1",
+    version="1.1.0",
     description='',
     executables=executables
 )

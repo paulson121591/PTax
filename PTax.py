@@ -10,8 +10,43 @@ from uszipcode import SearchEngine
 import sqlalchemy.sql.default_comparator
 import pyautogui
 import pickle
-license_fetch = pickle.load(open('license','rb'))
-license_key = license_fetch.get('New license','')
+
+
+
+
+class License ( QWidget ):
+
+    def __init__(self, key):
+        QWidget.__init__(self)
+        self.key = key
+        layout = QFormLayout()
+        self.label = QLabel( "Enter License Key" )
+        self.current_key = QLineEdit()
+        self.btn = QPushButton( "Confirm" )
+
+        layout.addRow( self.label )
+        layout.addRow( self.current_key )
+        layout.addRow(  self.btn )
+        self.setLayout( layout )
+        self.setWindowTitle( "License" )
+
+        self.current_key.setText(str(key))
+
+        self.btn.clicked.connect( self.update_license_key )
+
+
+
+    def update_license_key(self):
+        self.key = self.current_key.text()
+
+        newlicense ={'New license':self.key}
+
+
+        pickle.dump( newlicense, open( 'license', "wb") )
+
+
+
+
 
 
 
@@ -25,6 +60,12 @@ class Form( QObject ):
         loader = QUiLoader()
         self.window = loader.load( ui_file )
         ui_file.close()
+
+        license_fetch = pickle.load( open( 'license', 'rb' ) )
+        self.license_key = license_fetch.get( 'New license', '' )
+
+        self.client = taxjar.Client( api_key=self.license_key )
+
 
 
 
@@ -48,9 +89,11 @@ class Form( QObject ):
 
         self.window.show()
 
-    def look(self,):
+
+
+    def look(self):
         try:
-            client = taxjar.Client( api_key=license_key )
+
 
 
 
@@ -60,7 +103,7 @@ class Form( QObject ):
             city = self.lineEditCity.currentText()
             street = self.lineEditAddress.text()
 
-            rates = client.rates_for_location( zipCode, {'city': city, 'street': street} )
+            rates = self.client.rates_for_location( zipCode, {'city': city, 'street': street} )
             county = rates.county
             self.lineEditCounty.setText( str( county ) )
 
@@ -94,35 +137,48 @@ class Form( QObject ):
 
 
 
+
     def zipcity(self,):
-        client = taxjar.Client( api_key=license_key )
-        street = self.lineEditAddress.text()
+        try:
 
-        # noinspection PyPep8Naming
-        zipCode = self.lineEditZip.text()
-        city = self.lineEditCity.currentText()
-        search = SearchEngine( simple_zipcode=True )
-        zipcode = search.by_zipcode( zipCode )
 
-        zipcodecity = zipcode.common_city_list
-        rates = client.rates_for_location( zipCode, {'city': zipcodecity, 'street': street} )
-        county = rates.county
-        self.lineEditCounty.setText( str( county ) )
+            street = self.lineEditAddress.text()
 
-        self.lineEditCounty.clear()
+            # noinspection PyPep8Naming
+            zipCode = self.lineEditZip.text()
+            city = self.lineEditCity.currentText()
+            search = SearchEngine( simple_zipcode=True )
+            zipcode = search.by_zipcode( zipCode )
 
-        self.lineEditCity.clear()
+            zipcodecity = zipcode.common_city_list
+            rates = self.client.rates_for_location( zipCode, {'city': zipcodecity, 'street': street} )
+            county = rates.county
+            self.lineEditCounty.setText( str( county ) )
 
-        self.lineEditCounty.setText( str( county ) )
+            self.lineEditCounty.clear()
 
-        self.lineEditCity.addItems( zipcodecity )
+            self.lineEditCity.clear()
+
+            self.lineEditCounty.setText( str( county ) )
+
+            self.lineEditCity.addItems( zipcodecity )
+        except taxjar.exceptions.TaxJarResponseError as err:
+            if '401' in str( err ):
+                pyautogui.alert( 'Check license_key\n  ' + str( err ) )
+            if '404' in str( err ):
+                pyautogui.alert( 'not found check the info and try again\n ' + str( err ) )
 
     def license(self):
-        updatelicense = pyautogui.prompt('enter new license code')
-        newlicense ={'New license':updatelicense}
+        self.w = License(key=self.license_key)
+        print(self.license_key)
+        self.w.setGeometry(QRect(100, 100, 400, 200))
+        self.w.show()
 
-        if updatelicense != None:
-            pickle.dump( newlicense, open( 'license', "wb") )
+
+        license_fetch = pickle.load( open( 'license', 'rb' ) )
+        self.license_key = license_fetch.get( 'New license', '' )
+
+        self.client = taxjar.Client( api_key=self.license_key )
 
 
 
