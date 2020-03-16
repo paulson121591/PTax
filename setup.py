@@ -4,9 +4,9 @@ base = "Win32GUI"
 
 executables = [Executable( "PTax.py", base=base, icon="favicon.ico" )]
 excludes = []  # 'asyncio',"tkinter",'test','xml', 'xmlrpc', 'sqlite3'
-include_files = ['mainwindow.ui','license','Splash.png']
+include_files = ['mainwindow.ui','license','Splash.png','dirc.py']
 packages = ["idna", "PySide2",
-            "taxjar", "uszipcode", "sys","time","pyautogui","pickle"]
+            "taxjar", "uszipcode", "sys","time","pyautogui","pickle",'re','os','googlemaps','datetime','html2text']
 shortcut_table = [
     ("DesktopShortcut",         # Shortcut
      "DesktopFolder",           # Directory_
@@ -37,7 +37,7 @@ options = {
 setup(
     name="PTax",
     options=options,
-    version="1.1.0",
+    version="1.2.0",
     description='',
     executables=executables
 )

@@ -10,6 +10,10 @@ from uszipcode import SearchEngine
 import sqlalchemy.sql.default_comparator
 import pyautogui
 import pickle
+from dirc import dirctions
+import re
+import os
+import subprocess
 
 
 
@@ -79,8 +83,19 @@ class Form( QObject ):
         self.actionLicense = self.window.findChild( QAction, 'actionLicense' )
         self.lineEditBeTax = self.window.findChild( QLineEdit, 'lineEditBeTax' )
         self.lineEditAfTax = self.window.findChild( QLineEdit, 'lineEditAfTax' )
+        self.comboBox_origin = self.window.findChild(QComboBox,'comboBox_origin')
+        self.lineEdit_Dist = self.window.findChild( QLineEdit, 'lineEdit_Dist' )
+        self.pushButton_dist = self.window.findChild( QPushButton, 'pushButton_dist' )
+        self.lineEdit_shipping_cost = self.window.findChild( QLineEdit, 'lineEdit_shipping_cost' )
+        self.pushButton_get_directions = self.window.findChild(QPushButton, 'pushButton_get_directions')
+
+
+
+
 
         self.pushButtonLook.clicked.connect( self.look )
+        self.pushButton_get_directions.clicked.connect(self.get_directions)
+        self.pushButton_dist.clicked.connect(self.shipping)
         self.lineEditZip.editingFinished.connect( self.zipcity )
         self.lineEditAddress.editingFinished.connect( self.zipcity )
         self.actionLicense.triggered.connect(self.license)
@@ -92,6 +107,7 @@ class Form( QObject ):
 
 
     def look(self):
+
         try:
 
 
@@ -179,6 +195,76 @@ class Form( QObject ):
         self.license_key = license_fetch.get( 'New license', '' )
 
         self.client = taxjar.Client( api_key=self.license_key )
+
+
+
+    def shipping(self):
+
+        street = self.lineEditAddress.text()
+        city = self.lineEditCity.currentText()
+        zipcode = self.lineEditZip.text()
+
+
+        search = SearchEngine( simple_zipcode=True )
+
+        loc = search.by_zipcode( zipcode )
+        state = loc.state
+
+        destination = street+', '+city+', '+state+' '+zipcode
+
+
+        origin = self.comboBox_origin.currentText()
+        if origin == 'Oakwood':
+            origin = '3703 Old Oakwood Rd, Oakwood, GA 30566'
+        if origin == 'Townville':
+            origin = '431 Farmer Rd, Townville, SC 29689'
+
+        distance = dirctions.distance(self, origin, destination)
+
+
+        self.lineEdit_Dist.setText(distance)
+
+        num_dist = re.findall(r'[0-9,.]+', distance )
+        print(num_dist)
+
+        str1 = ''
+        num_dist = str1.join(num_dist)
+
+        shipping_cost= float(num_dist)*4
+        print(shipping_cost)
+        self.lineEdit_shipping_cost.setText('$'+str(shipping_cost))
+
+    def get_directions(self):
+        street = self.lineEditAddress.text()
+        city = self.lineEditCity.currentText()
+        zipcode = self.lineEditZip.text()
+
+
+        search = SearchEngine( simple_zipcode=True )
+
+        loc = search.by_zipcode( zipcode )
+        state = loc.state
+
+        destination = street+', '+city+', '+state+' '+zipcode
+
+
+        origin = self.comboBox_origin.currentText()
+        if origin == 'Oakwood':
+            origin = '3703 Old Oakwood Rd, Oakwood, GA 30566'
+        if origin == 'Townville':
+            origin = '431 Farmer Rd, Townville, SC 29689'
+
+        dirctions.directions_to(self,origin,destination)
+        os.startfile('directions.txt')
+
+
+
+
+
+
+
+
+
 
 
 
