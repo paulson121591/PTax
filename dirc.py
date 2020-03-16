@@ -11,7 +11,7 @@ class dirctions:
         self.this='this is a thing in init'
         self.directions_to()
 
-
+    # comment
     def distance(self,origin,destination):
         gmaps = googlemaps.Client( key='AIzaSyBxmKAcGrKpJCEf-mWsZDCJ4ttdqKnxhkE' )
 

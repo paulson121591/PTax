@@ -17,7 +17,7 @@ import subprocess
 
 
 
-
+#comment
 class License ( QWidget ):
 
     def __init__(self, key):
